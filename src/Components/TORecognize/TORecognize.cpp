@@ -70,7 +70,7 @@ bool TORecognize::onInit() {
 
 	if (prop_read_on_init)
 		load_model_flag = true;
-	else 
+	else
 		load_model_flag = false;
 
 	return true;
@@ -92,7 +92,7 @@ bool TORecognize::onStart() {
 void TORecognize::setKeypointDetector(){
 	CLOG(LDEBUG) << "setKeypointDetector";
 	// Check current detector type.
-	if (current_detector_type == prop_detector_type) 
+	if (current_detector_type == prop_detector_type)
 		return;
 
 	// Set detector.
@@ -156,7 +156,7 @@ void TORecognize::setKeypointDetector(){
 void TORecognize::setDescriptorExtractor(){
 	CLOG(LDEBUG) << "setDescriptorExtractor";
 	// Check current extractor type.
-	if (current_extractor_type == prop_extractor_type) 
+	if (current_extractor_type == prop_extractor_type)
 		return;
 
 	// Set matcher.
@@ -198,7 +198,7 @@ void TORecognize::setDescriptorExtractor(){
 void TORecognize::setDescriptorMatcher(){
 	CLOG(LDEBUG) << "setDescriptorMatcher";
 	// Check current matcher type.
-	if (current_matcher_type == prop_matcher_type) 
+	if (current_matcher_type == prop_matcher_type)
 		return;
 
 	// Set matcher.
@@ -270,13 +270,15 @@ void TORecognize::loadModels(){
 	// Load single model - for now...
 //	loadSingleModel(prop_filename, "c3po-ultra-model");
 
-	loadSingleModel("/home/tkornuta/discode_ecovi/DCL/TORecognition/data/dilmah_ceylon_lemon.jpg", "dilmah ceylon lemon");
-//	loadSingleModel("/home/tkornuta/discode_ecovi/DCL/TORecognition/data/lipton_earl_grey_classic.jpg", "lipton earl grey classic");
-//	loadSingleModel("/home/tkornuta/discode_ecovi/DCL/TORecognition/data/lipton_earl_grey_lemon.jpg", "lipton earl grey lemon");
-	loadSingleModel("/home/tkornuta/discode_ecovi/DCL/TORecognition/data/lipton_green_tea_citrus.jpg", "lipton green tea citrus");
-	loadSingleModel("/home/tkornuta/discode_ecovi/DCL/TORecognition/data/lipton_tea_lemon.jpg", "lipton tea lemon");
-	loadSingleModel("/home/tkornuta/discode_ecovi/DCL/TORecognition/data/twinings_earl_grey.jpg", "twinings earl grey");
-	loadSingleModel("/home/tkornuta/discode_ecovi/DCL/TORecognition/data/ahmad_daarjeling.png", "ahmad daarjeling");
+	loadSingleModel("/home/awujek1/DCL/Ecovi/data/tea_covers/dilmah_ceylon_lemon.jpg", "dilmah ceylon lemon");
+	loadSingleModel("/home/awujek1/DCL/Ecovi/data/tea_covers/lipton_earl_grey_classic.jpg", "lipton earl grey classic");
+//	loadSingleModel("/home/awujek1/DCL/Ecovi/data/tea_covers/lipton_earl_grey_lemon.jpg", "lipton earl grey lemon");
+//	loadSingleModel("/home/awujek1/DCL/Ecovi/data/tea_covers/lipton_green_tea_citrus.jpg", "lipton green tea citrus");
+//	loadSingleModel("/home/awujek1/DCL/Ecovi/data/tea_covers/lipton_tea_lemon.jpg", "lipton tea lemon");
+//	loadSingleModel("/home/awujek1/DCL/Ecovi/data/tea_covers/twinings_earl_grey.jpg", "twinings earl grey");
+//	loadSingleModel("/home/tkornuta/discode_ecovi/DCL/TORecognition/data/ahmad_daarjeling.png", "ahmad daarjeling");
+	loadSingleModel("/home/awujek1/DCL/Ecovi/data/tea_covers/herbapol_mieta.png", "herbapol mieta");
+	loadSingleModel("/home/awujek1/DCL/Ecovi/data/tea_covers/loyd.jpg", "loyd");
 
 }
 
@@ -301,7 +303,7 @@ bool TORecognize::extractFeatures(const cv::Mat image_, std::vector<KeyPoint> & 
 		// Transform to grayscale - if requred.
 		if (image_.channels() == 1)
 			gray_img = image_;
-		else 
+		else
 			cvtColor(image_, gray_img, COLOR_BGR2GRAY);
 
 		// Detect the keypoints.
@@ -363,8 +365,11 @@ void TORecognize::onNewImage()
 {
 	CLOG(LTRACE) << "onNewImage";
 	try {
+
+
 		// Change keypoint detector and descriptor extractor types (if required).
 		setKeypointDetector();
+
 		setDescriptorExtractor();
 
 		// Re-load the model - extract features from model.
@@ -393,7 +398,7 @@ void TORecognize::onNewImage()
 		// Check model.
 		for (unsigned int m=0; m < models_imgs.size(); m++) {
 			CLOG(LDEBUG) << "Trying to recognize model (" << m <<"): " << models_names[m];
-	
+
 			if ((models_keypoints[m]).size() == 0) {
 				CLOG(LWARNING) << "Model not valid. Please load model that contain texture";
 				return;
@@ -466,7 +471,7 @@ void TORecognize::onNewImage()
 
 			// Transform corners with found homography.
 			perspectiveTransform( obj_corners, hypobj_corners, H);
-			
+
 			// Verification: check resulting shape of object hypothesis.
 			// Compute "center of mass".
 			cv::Point2f center = (hypobj_corners[0] + hypobj_corners[1] + hypobj_corners[2] + hypobj_corners[3])*.25;
@@ -514,7 +519,7 @@ void TORecognize::onNewImage()
 				colour = Scalar(0, 0, 255);
 				CLOG(LINFO)<< "Model ("<<m<<"): keypoints "<< models_keypoints [m].size()<<" corrs = "<< good_matches.size() <<" score "<< score << " REJECTED";
 			}//: else
-				
+
 
 			if (m == prop_returned_model_number) {
 				Mat img_matches2;
@@ -533,12 +538,12 @@ void TORecognize::onNewImage()
 
 			}//: if
 		}//: for
-		
+
 		Mat img_object = scene_img.clone();
 		if (recognized_names.size() == 0) {
 			CLOG(LWARNING)<< "None of the models was not properly recognized in the image";
 		} else {
-			
+
 			for (int h=0; h<recognized_names.size(); h++) {
 				// Draw the final object - as lines, with center and top left corner indicated.
 				line( img_object, recognized_corners[h][0], recognized_corners[h][1], Scalar(0, 255, 0), 4 );
@@ -552,6 +557,7 @@ void TORecognize::onNewImage()
 		}//: else
 		// Write image to port.
 		out_img_object.write(img_object);
+
 	} catch (...) {
 		CLOG(LERROR) << "onNewImage failed";
 	}//: catch
