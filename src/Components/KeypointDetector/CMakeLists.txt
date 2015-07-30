@@ -9,10 +9,10 @@ FIND_PACKAGE( OpenCV REQUIRED )
 
 
 # Create an executable file from sources:
-ADD_LIBRARY(KeypointsDetector SHARED ${files})
+ADD_LIBRARY(KepointDetector SHARED ${files})
 
 # Link external libraries
-TARGET_LINK_LIBRARIES(KeypointsDetector ${DisCODe_LIBRARIES} 
+TARGET_LINK_LIBRARIES(KepointDetector ${DisCODe_LIBRARIES} 
 	${OpenCV_LIBS})
 
-INSTALL_COMPONENT(KeypointsDetector)
+INSTALL_COMPONENT(KepointDetector)

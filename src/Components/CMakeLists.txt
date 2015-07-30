@@ -1,4 +1,4 @@
 # Add all components here using ADD_COMPONENT(<COMPONENT_DIRECTORY>)
 ADD_COMPONENT(TORecognize)
 
-ADD_COMPONENT(KeypointsDetector)
+ADD_COMPONENT(KeypointDetector)
