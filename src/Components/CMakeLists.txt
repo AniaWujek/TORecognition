@@ -2,3 +2,7 @@
 ADD_COMPONENT(TORecognize)
 
 ADD_COMPONENT(KeypointDetector)
+
+ADD_COMPONENT(DescriptorExtractor)
+
+ADD_COMPONENT(SimpleModelLoader)

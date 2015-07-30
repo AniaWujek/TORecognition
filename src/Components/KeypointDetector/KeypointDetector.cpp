@@ -49,6 +49,13 @@ void KeypointDetector::prepareInterface() {
 
 bool KeypointDetector::onInit() {
 
+    // Initialize detector.
+	current_detector_type = -1;
+	setKeypointDetector();
+	if (prop_read_on_init)
+		load_model_flag = true;
+	else
+		load_model_flag = false;
 	return true;
 }
 
