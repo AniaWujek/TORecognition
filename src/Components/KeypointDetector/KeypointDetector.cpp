@@ -40,10 +40,15 @@ KeypointDetector::~KeypointDetector() {
 void KeypointDetector::prepareInterface() {
 	// Register data streams, events and event handlers HERE!
 	registerStream("in_img", &in_img);
+	registerStream("out_models_keypoints", &out_models_keypoints);
+	registerStream("in_models_imgs", &in_models_imgs);
+	registerStream("in_models_names", &in_models_names);
 	registerStream("out_scene_keypoints", &out_scene_keypoints);
 	// Register handlers
 	registerHandler("onNewImage", boost::bind(&KeypointDetector::onNewImage, this));
 	addDependency("onNewImage", &in_img);
+	addDependency("onNewImage", &in_models_imgs);
+	addDependency("onNewImage", &in_models_names);
 
 }
 
@@ -52,10 +57,7 @@ bool KeypointDetector::onInit() {
     // Initialize detector.
 	current_detector_type = -1;
 	setKeypointDetector();
-	if (prop_read_on_init)
-		load_model_flag = true;
-	else
-		load_model_flag = false;
+
 	return true;
 }
 
@@ -130,11 +132,13 @@ void KeypointDetector::setKeypointDetector(){
 	current_detector_type = prop_detector_type;
 
 	// Reload the model.
-	load_model_flag = true;
+	//load_model_flag = true;
 }
 
 bool KeypointDetector::extractFeatures(const cv::Mat image_, std::vector<cv::KeyPoint> & keypoints_) {
 	CLOG(LTRACE) << "extractFeatures";
+
+
         cv::Mat gray_img;
 
 	try {
@@ -154,61 +158,15 @@ bool KeypointDetector::extractFeatures(const cv::Mat image_, std::vector<cv::Key
 	}//: catch
 }
 
-void KeypointDetector::loadModels(){
-	CLOG(LDEBUG) << "loadModels";
-
-	if (!load_model_flag)
-		return;
-	load_model_flag = false;
-
-	// Clear database.
-	models_imgs.clear();
-	models_keypoints.clear();
-	//models_descriptors.clear();
-	models_names.clear();
-
-	// Load single model - for now...
-//	loadSingleModel(prop_filename, "c3po-ultra-model");
-
-	loadSingleModel("/home/awujek1/DCL/Ecovi/data/tea_covers/dilmah_ceylon_lemon.jpg", "dilmah ceylon lemon");
-	loadSingleModel("/home/awujek1/DCL/Ecovi/data/tea_covers/lipton_earl_grey_classic.jpg", "lipton earl grey classic");
-//	loadSingleModel("/home/awujek1/DCL/Ecovi/data/tea_covers/lipton_earl_grey_lemon.jpg", "lipton earl grey lemon");
-//	loadSingleModel("/home/awujek1/DCL/Ecovi/data/tea_covers/lipton_green_tea_citrus.jpg", "lipton green tea citrus");
-//	loadSingleModel("/home/awujek1/DCL/Ecovi/data/tea_covers/lipton_tea_lemon.jpg", "lipton tea lemon");
-//	loadSingleModel("/home/awujek1/DCL/Ecovi/data/tea_covers/twinings_earl_grey.jpg", "twinings earl grey");
-//	loadSingleModel("/home/tkornuta/discode_ecovi/DCL/TORecognition/data/ahmad_daarjeling.png", "ahmad daarjeling");
-	loadSingleModel("/home/awujek1/DCL/Ecovi/data/tea_covers/herbapol_mieta.png", "herbapol mieta");
-	loadSingleModel("/home/awujek1/DCL/Ecovi/data/tea_covers/loyd.jpg", "loyd");
-
-}
-
-bool KeypointDetector::loadImage(const std::string filename_, cv::Mat & image_) {
-	CLOG(LTRACE) << "loadImage";
-	try {
-	        image_ = cv::imread( filename_ );
-		return true;
-	} catch (...) {
-		CLOG(LWARNING) << "Could not load image from file " << filename_;
-		return false;
-	}
-}
-
-void KeypointDetector::loadSingleModel(std::string filename_, std::string name_){
-	CLOG(LTRACE) << "loadSingleModel";
-	cv::Mat model_img;
-
-	if ( loadImage(filename_, model_img) ) {
-		std::vector<cv::KeyPoint> model_keypoints;
-		extractFeatures(model_img, model_keypoints);
-
-		// Add to database.
-		models_imgs.push_back(model_img);
+void KeypointDetector::detectKeypoints() {
+    models_keypoints.clear();
+    cv::Mat model_img;
+    for(int i = 0; i < models_imgs.size(); ++i) {
+        std::vector<cv::KeyPoint> model_keypoints;
+		extractFeatures(models_imgs[i], model_keypoints);
 		models_keypoints.push_back(model_keypoints);
-		models_names.push_back(name_);
-		CLOG(LNOTICE) << "Successfull load of model (" << models_names.size()-1 <<"): "<<models_names[models_names.size()-1];
-	}//: if
+    }
 }
-
 
 
 void KeypointDetector::onNewImage() {
@@ -219,24 +177,29 @@ void KeypointDetector::onNewImage() {
         // Change keypoint detector type (if required).
         setKeypointDetector();
 
-        // Re-load the model - extract features from model.
-		loadModels();
+        models_imgs = in_models_imgs.read();
+        models_names = in_models_names.read();
 
 		std::vector<cv::KeyPoint> scene_keypoints;
 
 		// Load image containing the scene.
-		cv::Mat scene_img = in_img.read();
+		cv::Mat scene_img = in_img.read().clone();
+
+		detectKeypoints();
+
+
 
 		// Extract features from scene.
 		extractFeatures(scene_img, scene_keypoints);
 		CLOG(LINFO) << "Scene features: " << scene_keypoints.size();
 
 		std::vector< std::vector<cv::KeyPoint> > out_keypoints;
-		out_keypoints.push_back(scene_keypoints);
+		//out_keypoints.push_back(scene_keypoints);
 		for(int i = 0; i < models_keypoints.size(); ++i) {
             out_keypoints.push_back(models_keypoints[i]);
 		}
-		out_scene_keypoints.write(out_keypoints);
+		out_models_keypoints.write(out_keypoints);
+		out_scene_keypoints.write(scene_keypoints);
 
 
 

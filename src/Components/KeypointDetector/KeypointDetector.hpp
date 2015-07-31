@@ -74,9 +74,13 @@ protected:
 
 	// Input data streams
 	Base::DataStreamIn<cv::Mat> in_img;
+	Base::DataStreamIn<std::vector<cv::Mat> > in_models_imgs;
+	Base::DataStreamIn<std::vector<std::string> > in_models_names;
+
 
 	// Output data streams
-	Base::DataStreamOut<std::vector< std::vector<cv::KeyPoint> > > out_scene_keypoints;
+	Base::DataStreamOut<std::vector< std::vector<cv::KeyPoint> > > out_models_keypoints;
+	Base::DataStreamOut<std::vector<cv::KeyPoint> > out_scene_keypoints;
 
 	// Handlers
 
@@ -99,16 +103,11 @@ protected:
 	/// Variable denoting current detector type - used for dynamic switching between detectors.
 	int current_detector_type;
 
-	/// Flag used for loading models.
-	bool load_model_flag;
-	/// Re-load the models from files, detect and extract their features.
-	void loadModels();
-	/// Load a single model from file indicated by function parameter.
-	void loadSingleModel(std:: string filename_, std::string name_);
+
 	/// Returns keypoint extracted from image.
 	bool extractFeatures(const cv::Mat image_, std::vector<cv::KeyPoint> & keypoints_);
-	/// Loads image from file.
-	bool loadImage(const std::string filename_, cv::Mat & image_);
+
+	void detectKeypoints();
 
 	/// Vector of images constituting the consecutive models.
     std::vector<cv::Mat> models_imgs;
@@ -116,6 +115,7 @@ protected:
     std::vector<std::vector<cv::KeyPoint> > models_keypoints;
 	/// Vector of names of consecutive models.
     std::vector<std::string> models_names;
+
 
 
 	// Handlers
