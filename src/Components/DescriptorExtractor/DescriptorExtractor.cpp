@@ -51,6 +51,11 @@ void DescriptorExtractor::prepareInterface() {
 	addDependency("onNewImage", &in_img);
 	addDependency("onNewImage", &in_models_imgs);
 	addDependency("onNewImage", &in_models_names);
+	addDependency("onNewImage", &in_models_keypoints);
+	addDependency("onNewImage", &in_scene_keypoints);
+
+
+
 
 }
 
